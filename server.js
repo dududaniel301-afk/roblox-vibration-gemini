@@ -1,4 +1,3 @@
-
 import express from "express";
 
 const app = express();
@@ -38,21 +37,25 @@ app.post("/calibrar", async (req, res) => {
             content: [
               {
                 type: "text",
-                text: `Analise esta captura de tela do Roblox Vox Seas.
+                text: `Analise a captura de tela do Roblox Vox Seas.
 
 A barra de vida fica no canto inferior esquerdo.
+Ela é VERDE.
+Existe outra barra AZUL abaixo dela. NÃO confunda as duas.
 
-Procure cuidadosamente nessa região por uma barra horizontal verde.
+Localize somente a barra VERDE de vida.
 
-Se encontrar, descreva:
-- A posição da barra.
-- A largura aproximada.
-- A altura aproximada.
-- A porcentagem aproximada de preenchimento.
+Retorne exclusivamente um JSON neste formato:
+{"found":true,"box_2d":[ymin,xmin,ymax,xmax]}
 
-Se não encontrar, explique o motivo.
+As coordenadas devem estar entre 0 e 1000.
+A ordem é: topo, esquerda, base, direita.
 
-Responda em português e seja objetivo.`
+Se não encontrar claramente a barra verde, retorne:
+{"found":false,"box_2d":[0,0,0,0]}
+
+Não invente coordenadas.
+Não confunda a barra azul com a verde.`
               },
               {
                 type: "image_url",
@@ -74,14 +77,39 @@ Responda em português e seja objetivo.`
       });
     }
 
-    const texto =
-      dados.choices?.[0]?.message?.content ||
-      "Nenhuma resposta recebida";
+    const conteudo =
+      dados.choices?.[0]?.message?.content || "";
+
+    const inicio = conteudo.indexOf("{");
+    const fim = conteudo.lastIndexOf("}");
+
+    if (inicio === -1 || fim === -1) {
+      throw new Error("A IA não retornou um JSON válido.");
+    }
+
+    const resultado = JSON.parse(
+      conteudo.substring(inicio, fim + 1)
+    );
+
+    const caixa = resultado.box_2d;
+
+    if (
+      resultado.found !== true ||
+      !Array.isArray(caixa) ||
+      caixa.length !== 4 ||
+      !caixa.every(
+        n => Number.isInteger(n) && n >= 0 && n <= 1000
+      )
+    ) {
+      return res.json({
+        found: false,
+        box_2d: [0, 0, 0, 0]
+      });
+    }
 
     res.json({
-      resultado: texto,
-      resposta: texto,
-      text: texto
+      found: true,
+      box_2d: caixa
     });
 
   } catch (erro) {
@@ -96,4 +124,3 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor iniciado na porta " + PORT);
 });
-                
