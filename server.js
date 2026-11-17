@@ -38,7 +38,21 @@ app.post("/calibrar", async (req, res) => {
             content: [
               {
                 type: "text",
-                text: "Analise a imagem do Roblox. Identifique a barra de vida verde e descreva sua posição e aparência."
+                text: `Analise esta captura de tela do Roblox Vox Seas.
+
+A barra de vida fica no canto inferior esquerdo.
+
+Procure cuidadosamente nessa região por uma barra horizontal verde.
+
+Se encontrar, descreva:
+- A posição da barra.
+- A largura aproximada.
+- A altura aproximada.
+- A porcentagem aproximada de preenchimento.
+
+Se não encontrar, explique o motivo.
+
+Responda em português e seja objetivo.`
               },
               {
                 type: "image_url",
@@ -82,4 +96,4 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor iniciado na porta " + PORT);
 });
-        
+                
